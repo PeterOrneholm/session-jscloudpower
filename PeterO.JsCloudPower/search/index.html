@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Search - JsCLoudPower</title>
+    <meta charset="utf-8" />
+    <link href="/assets/bootstrap.css" rel="stylesheet" />
+
+    <style>
+        i {
+            background-color: rgb(249, 249, 153);
+            display: inline-block;
+        }
+    </style>
+
+    <script type="text/javascript">
+        var appInsights = window.appInsights || function (config) {
+            function r(config) { t[config] = function () { var i = arguments; t.queue.push(function () { t[config].apply(t, i) }) } } var t = { config: config }, u = document, e = window, o = "script", s = u.createElement(o), i, f; for (s.src = config.url || "//az416426.vo.msecnd.net/scripts/a/ai.0.js", u.getElementsByTagName(o)[0].parentNode.appendChild(s), t.cookie = u.cookie, t.queue = [], i = ["Event", "Exception", "Metric", "PageView", "Trace"]; i.length;) r("track" + i.pop()); return r("setAuthenticatedUserContext"), r("clearAuthenticatedUserContext"), config.disableExceptionTracking || (i = "onerror", r("_" + i), f = e[i], e[i] = function (config, r, u, e, o) { var s = f && f(config, r, u, e, o); return s !== !0 && t["_" + i](config, r, u, e, o), s }), t
+        }({
+            instrumentationKey: "3da6ca12-9d19-4709-afe2-a5ea7feb1d09"
+        });
+
+        window.appInsights = appInsights;
+        appInsights.trackPageView();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Get search suggestions from Azure Search</h1>
+        <div class="form-group">
+            <input type="search" class="form-control" placeholder="Search for anything" autofocus />
+        </div>
+        <ul id="suggestions" class="list-group"></ul>
+    </div>
+    <script src="../assets/jquery-1.12.4.min.js"></script>
+<script>
+        (function () {
+            var searchInput = document.querySelector('input[type="search"]');
+
+            searchInput.addEventListener('keyup', function (event) {
+                var query = searchInput.value;
+                if (!query || query.length < 3) {
+                    document.querySelector('#suggestions').innerHTML = '';
+
+                    return;
+                }
+
+                appInsights.trackEvent('GetSuggestions', { query: query });
+                getSearchSuggestions(query).then(function (suggestions) {
+                    var html = suggestions.value.map(function (x) {
+                        return `<li class="list-group-item">${x['@search.text']}</li>`;
+                    }).join('');
+                    document.querySelector('#suggestions').innerHTML = html;
+                    document.querySelector('#debug').innerHTML = 'Test';
+                });
+            });
+
+            function getSearchSuggestions(query) {
+                var hightlightPreTag = encodeURIComponent('<i>');
+                var highlightPostTag = encodeURIComponent('</i>');
+
+                var baseUrl = 'https://po-jscloudpower.search.windows.net/indexes/sites/docs/suggest';
+                var options = '?api-version=2015-02-28&fuzzy=true&suggesterName=sites&highlightPreTag=' + hightlightPreTag + '&highlightPostTag=' + highlightPostTag + '&search=' + encodeURIComponent(query);
+                return $.ajax({
+                    type: 'GET',
+                    url: baseUrl + options,
+                    headers: {
+                        'api-key': 'B599AD5A31B888241C5528F36E34B547'
+                    }
+                });
+            }
+        }());
+    </script>
+</body>
+</html>
